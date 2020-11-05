@@ -1,0 +1,18 @@
+<launch>
+  <arg name="sim"/>
+  <arg name="is_sim" value="$(arg sim)"/>
+  <group if="$(arg is_sim)">
+    <rosparam file="$(find ur5_e_moveit_config)/config/controllers.yaml"/>
+    <param name="use_controller_manager" value="false"/>
+    <param name="trajectory_execution/execution_duration_monitoring" value="false"/>
+    <param name="moveit_controller_manager" value="moveit_simple_controller_manager/MoveItSimpleControllerManager"/>
+  </group>
+
+  <group unless="$(arg is_sim)">
+    <rosparam file="$(find ur5_e_moveit_config)/config/controllers_real.yaml"/>
+    <param name="use_controller_manager" value="false"/>
+    <param name="trajectory_execution/execution_duration_monitoring" value="false"/>
+    <param name="moveit_controller_manager" value="moveit_simple_controller_manager/MoveItSimpleControllerManager"/>
+  </group>
+
+</launch>

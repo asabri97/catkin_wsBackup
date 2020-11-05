@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- GDB functionality -->
+  <arg name="debug" default="false" />
+  <arg unless="$(arg debug)" name="launch_prefix" value="" />
+  <arg if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
+
+  <arg name="robot_ip"/>
+  <arg name="reverse_ip" default="" doc="IP of the computer running the driver" />
+  <arg name="reverse_port" default="50001"/>
+  <arg name="limited" default="false"/>
+  <arg name="min_payload"  default="0.0"/>
+  <arg name="max_payload"  default="3.0"/>
+  <arg name="prefix" default="" />
+  <arg name="max_velocity" default="1.0"/> <!-- previously 10.0 [rad/s] -->
+  <arg name="base_frame" default="$(arg prefix)base" />
+  <arg name="tool_frame" default="$(arg prefix)tool0_controller" />
+  <arg name="shutdown_on_disconnect" default="true" />
+  <arg name="controllers" default="joint_state_controller force_torque_sensor_controller pos_based_pos_traj_controller"/>
+  <arg name="stopped_controllers" default="vel_based_pos_traj_controller joint_group_vel_controller"/>
+  <arg name="sim" default="false" />
+
+  <!-- Launch the Universal Robots ROS driver -->
+  <include file="$(find ur_robot_driver)/launch/ur5e_bringup.launch">
+     <arg name="robot_ip" default="$(arg robot_ip)" />
+     <arg name="kinematics_config" default="$(find ur_e_description)/config/my_robot_calibration.yaml" />
+      <arg name="headless_mode" default="false" />
+  </include>
+
+  <node name="robot_initializer" pkg="example" type="initialize_robot.py" output="screen"/>
+
+</launch>

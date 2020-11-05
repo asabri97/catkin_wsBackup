@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="sim" default="true" />
+
+  <!-- Define if we want the master, the slave or both in the same computer -->
+  <!-- "master", "slave", "both" -->
+  <arg name="position" default="slave" />
+  <!-- Define if we want the core nodes (get position, scene, position node) to be grouped -->
+  <arg name="is_core_nodes_grouped" default="false" />
+
+  <!-- Define if we want the camera node to be open (if the camera is connected) -->
+  <arg name="is_camera_open" default="false" />
+
+  <!-- Define if we want the scale node to be open (if the scale is connected) -->
+  <arg name="is_scale_connected" default="true" />
+
+  <!-- Define if we want to display the output of the nodes on screen (development !)-->
+  <!-- "screen" or "log"-->
+  <arg name="node_output" default="log" />
+
+  <node name="arm_controller_spawner" pkg="controller_manager" type="controller_manager" args="spawn arm_controller" respawn="false" output="screen"/>
+
+  <!-- load other controllers -->
+  <node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false" output="screen" args="load joint_group_position_controller" />
+
+  <include file="$(find example)/launch/pipeline.launch">
+  <arg name="position" value="$(arg position)" />
+  <arg name="is_core_nodes_grouped" value="$(arg is_core_nodes_grouped)" />
+  <arg name="is_camera_open" value="$(arg is_camera_open)" />
+  <arg name="is_scale_connected" value="$(arg is_scale_connected)"/>
+  <arg name="node_output" value="$(arg node_output)"/>
+  </include>
+
+</launch>

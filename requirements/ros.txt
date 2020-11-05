@@ -1,0 +1,4 @@
+roslibpy==0.7.1
+rospkg==1.2.3
+PyYAML==3.12
+libusb1==1.8

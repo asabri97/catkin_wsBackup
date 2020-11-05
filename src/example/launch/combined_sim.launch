@@ -1,0 +1,79 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="limited" default="false"  doc="If true, limits joint range [-PI, PI] on all joints." />
+  <arg name="paused" default="false" doc="Starts gazebo in paused mode" />
+  <arg name="gui" default="true" doc="Starts gazebo gui" />
+  <arg name="use_sim_time" default="true"/>
+  <arg name="headless" default="true"/>
+  <arg name="debug" default="false"/>
+  <arg name="sim" default="true" />
+
+  <!-- Define if we want the master, the slave or both in the same computer -->
+  <!-- "master", "slave", "both" -->
+  <arg name="position" default="both" />
+  <!-- Define if we want the core nodes (get position, scene, position node) to be grouped -->
+  <arg name="is_core_nodes_grouped" default="false" />
+
+  <!-- Define if we want the camera node to be open (if the camera is connected) -->
+  <arg name="is_camera_open" default="false" />
+
+  <!-- Define if we want the scale node to be open (if the scale is connected) -->
+  <arg name="is_scale_connected" default="false" />
+
+  <!-- Define if we want to display the output of the nodes on screen (development !)-->
+  <!-- "screen" or "log"-->
+  <arg name="node_output" default="screen" />
+
+  <!--startup simulated world (Gazebo Init)-->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find rrbot_gazebo)/worlds/rrbot.world"/>
+    <arg name="debug" value="$(arg debug)" />
+    <arg name="gui" value="$(arg gui)" />
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+    <arg name="headless" value="$(arg headless)"/>
+  </include>
+
+  <!-- send robot urdf to param server -->
+  <include file="$(find ur_e_description)/launch/ur5e_upload.launch">
+    <arg name="limited" value="$(arg limited)"/>
+  </include>
+
+  <!-- push robot_description to factory and spawn robot in gazebo -->
+  <node name="spawn_gazebo_model" pkg="gazebo_ros" type="spawn_model" args="-urdf -param robot_description -model robot -z 0.1" respawn="false" output="$(arg node_output)" />
+
+  <include file="$(find ur_e_gazebo)/launch/controller_utils.launch"/>
+
+  <!-- start this controller -->
+  <rosparam file="$(find ur_e_gazebo)/controller/arm_controller_ur5e.yaml" command="load"/>
+  <node name="arm_controller_spawner" pkg="controller_manager" type="controller_manager" args="spawn arm_controller" respawn="false" output="$(arg node_output)"/>
+
+  <!-- load other controllers -->
+  <!--node name="ros_control_controller_manager" pkg="controller_manager" type="controller_manager" respawn="false" output="$(arg node_output)" args="load joint_group_position_controller" /-->
+
+  <!-- Remap follow_joint_trajectory -->
+  <remap if="$(arg sim)" from="/follow_joint_trajectory" to="/arm_controller/follow_joint_trajectory"/>
+
+  <!-- Launch moveit -->
+
+  <include file="$(find ur5_e_moveit_config)/launch/move_group.launch">
+    <arg name="limited" default="$(arg limited)"/>
+    <arg name="debug" default="$(arg debug)" />
+    <arg name="sim" value="$(arg sim)"/>
+    <arg name="node_output" value="$(arg node_output)"/>
+  </include>
+
+  <!-- Moveit Rviz  -->
+  <arg unless="$(arg debug)" name="launch_prefix" value="" />
+  <arg     if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
+  <arg name="config" default="true" />
+  <arg unless="$(arg config)" name="command_args" value="" />
+  <arg     if="$(arg config)" name="command_args" value="-d $(find ur5_e_moveit_config)/launch/moveit.rviz" />
+
+  <node name="$(anon rviz)" launch-prefix="$(arg launch_prefix)" pkg="rviz" type="rviz" respawn="false"
+	args="$(arg command_args)" output="screen">
+    <rosparam command="load" file="$(find ur5_e_moveit_config)/config/kinematics.yaml"/>
+  </node>
+
+
+</launch>

@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<launch>
+
+  <!-- GDB functionality -->
+  <arg name="debug" default="false" />
+  <arg unless="$(arg debug)" name="launch_prefix" value="" />
+  <arg if="$(arg debug)" name="launch_prefix" value="gdb --ex run --args" />
+
+  <arg name="robot_ip"/>
+  <arg name="reverse_ip" default="" doc="IP of the computer running the driver" />
+  <arg name="reverse_port" default="50001"/>
+  <arg name="limited" default="false"/>
+  <arg name="min_payload"  default="0.0"/>
+  <arg name="max_payload"  default="3.0"/>
+  <arg name="prefix" default="" />
+  <arg name="max_velocity" default="1.0"/> <!-- previously 10.0 [rad/s] -->
+  <arg name="base_frame" default="$(arg prefix)base" />
+  <arg name="tool_frame" default="$(arg prefix)tool0_controller" />
+  <arg name="shutdown_on_disconnect" default="true" />
+  <arg name="controllers" default="joint_state_controller force_torque_sensor_controller pos_based_pos_traj_controller"/>
+  <arg name="stopped_controllers" default="vel_based_pos_traj_controller joint_group_vel_controller"/>
+  <arg name="sim" default="false" />
+
+  <!-- Define if we want the master, the slave or both in the same computer -->
+  <!-- "master", "slave", "both" -->
+  <arg name="position" default="both" />
+  <!-- Define if we want the core nodes (get position, scene, position node) to be grouped -->
+  <arg name="is_core_nodes_grouped" default="false" />
+
+  <!-- Define if we want the camera node to be open (if the camera is connected) -->
+  <arg name="is_camera_open" default="true" />
+
+  <!-- Define if we want the scale node to be open (if the scale is connected) -->
+  <arg name="is_scale_connected" default="true" />
+
+  <!-- Define if we want to display the output of the nodes on screen (development !)-->
+  <!-- "screen" or "log"-->
+  <arg name="node_output" default="screen" />
+
+  <!-- Launch the Universal Robots ROS driver -->
+  <include file="$(find ur_robot_driver)/launch/ur5e_bringup.launch">
+     <arg name="robot_ip" default="$(arg robot_ip)" />
+     <arg name="kinematics_config" default="$(find ur_e_description)/config/my_robot_calibration.yaml" />
+      <arg name="headless_mode" default="false" />
+  </include>
+
+  <!-- Launch moveit -->
+  <include file="$(find ur5_e_moveit_config)/launch/move_group.launch">
+    <arg name="limited" default="$(arg limited)"/>
+    <arg name="debug" default="$(arg debug)" />
+    <arg name="sim" value="$(arg sim)"/>
+    <arg name="node_output" value="$(arg node_output)"/>
+  </include>
+
+
+  <arg name="config" default="true" />
+  <arg unless="$(arg config)" name="command_args" value="" />
+  <arg     if="$(arg config)" name="command_args" value="-d $(find ur5_e_moveit_config)/launch/moveit.rviz" />
+
+  <!--node name="$(anon rviz)" launch-prefix="$(arg launch_prefix)" pkg="rviz" type="rviz" respawn="false"
+	args="$(arg command_args)" output="screen">
+    <rosparam command="load" file="$(find ur5_e_moveit_config)/config/kinematics.yaml"/>
+  </node-->
+
+  <include file="$(find example)/launch/pipeline.launch">
+  <arg name="position" value="$(arg position)" />
+  <arg name="is_core_nodes_grouped" value="$(arg is_core_nodes_grouped)" />
+  <arg name="is_camera_open" value="$(arg is_camera_open)" />
+  <arg name="is_scale_connected" value="$(arg is_scale_connected)"/>
+  <arg name="node_output" value="$(arg node_output)"/>
+  </include>
+
+  <!--include file="$(find rvizweb)/launch/rvizweb.launch">
+  </include-->
+
+</launch>

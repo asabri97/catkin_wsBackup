@@ -1,0 +1,73 @@
+<?xml version="1.0"?>
+<launch>
+  <arg name="limited" default="false"  doc="If true, limits joint range [-PI, PI] on all joints." />
+  <arg name="paused" default="false" doc="Starts gazebo in paused mode" />
+  <arg name="gui" default="true" doc="Starts gazebo gui" />
+  <arg name="use_sim_time" default="true"/>
+  <arg name="headless" default="true"/>
+  <arg name="debug" default="false"/>
+  <arg name="sim" default="true" />
+
+  <!-- Define if we want the master, the slave or both in the same computer -->
+  <!-- "master", "slave", "both" -->
+  <arg name="position" default="both" />
+  <!-- Define if we want the core nodes (get position, scene, position node) to be grouped -->
+  <arg name="is_core_nodes_grouped" default="false" />
+
+  <!-- Define if we want the camera node to be open (if the camera is connected) -->
+  <arg name="is_camera_open" default="false" />
+
+  <!-- Define if we want the scale node to be open (if the scale is connected) -->
+  <arg name="is_scale_connected" default="false" />
+
+  <!-- Define if we want to display the output of the nodes on screen (development !)-->
+  <!-- "screen" or "log"-->
+  <arg name="node_output" default="screen" />
+
+  <!--startup simulated world (Gazebo Init)-->
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="world_name" value="$(find rrbot_gazebo)/worlds/rrbot.world"/>
+    <arg name="debug" value="$(arg debug)" />
+    <arg name="gui" value="$(arg gui)" />
+    <arg name="paused" value="$(arg paused)"/>
+    <arg name="use_sim_time" value="$(arg use_sim_time)"/>
+    <arg name="headless" value="$(arg headless)"/>
+  </include>
+
+  <!-- push robot_description to factory and spawn robot in gazebo -->
+
+  <!-- BEGIN ROBOT 1-->
+  <group ns="robot1">
+    <param name="tf_prefix" value="robot1_tf" />
+    <include file="$(find example)/launch/one_robot.launch" >
+      <arg name="init_pose" value="-x 0 -y 2 -z 0" />
+      <arg name="robot_name"  value="Robot1" />
+      <arg name="limited" value="$(arg limited)"/>
+      <arg name="debug" default="$(arg debug)"/>
+      <arg name="sim" default="$(arg sim)" />
+      <arg name="position" value="$(arg position)" />
+      <arg name="is_core_nodes_grouped" value="$(arg is_core_nodes_grouped)"/>
+      <arg name="is_camera_open" value="$(arg is_camera_open)"/>
+      <arg name="is_scale_connected" value="$(arg is_scale_connected)"/>
+      <arg name="node_output" value="$(arg node_output)"/>
+    </include>
+  </group>
+
+  <!-- BEGIN ROBOT 2-->
+  <group ns="robot2">
+    <param name="tf_prefix" value="robot2_tf" />
+    <include file="$(find example)/launch/one_robot.launch" >
+      <arg name="init_pose" value="-x -0 -y 0 -z 0" />
+      <arg name="robot_name"  value="Robot2" />
+      <arg name="limited" value="$(arg limited)"/>
+      <arg name="debug" default="$(arg debug)"/>
+      <arg name="sim" default="$(arg sim)" />
+      <arg name="position" value="$(arg position)" />
+      <arg name="is_core_nodes_grouped" value="$(arg is_core_nodes_grouped)"/>
+      <arg name="is_camera_open" value="$(arg is_camera_open)"/>
+      <arg name="is_scale_connected" value="$(arg is_scale_connected)"/>
+      <arg name="node_output" value="$(arg node_output)"/>
+    </include>
+  </group>
+
+</launch>
